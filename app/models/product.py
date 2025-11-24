@@ -1,27 +1,24 @@
 """
 Product data models
 """
-from pydantic import BaseModel, Field
-from typing import Optional, List, Dict, Any
+from pydantic import BaseModel, Field, ConfigDict, BeforeValidator
+from typing import Optional, List, Dict, Any, Annotated
 from datetime import datetime
 from bson import ObjectId
 
 
-class PyObjectId(ObjectId):
-    """Custom ObjectId for Pydantic"""
-    @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
+def validate_object_id(v: Any) -> str:
+    """Validate and convert ObjectId to string"""
+    if isinstance(v, ObjectId):
+        return str(v)
+    if isinstance(v, str):
+        if ObjectId.is_valid(v):
+            return v
+        raise ValueError("Invalid ObjectId string")
+    raise ValueError("Invalid ObjectId")
 
-    @classmethod
-    def validate(cls, v):
-        if not ObjectId.is_valid(v):
-            raise ValueError("Invalid objectid")
-        return ObjectId(v)
 
-    @classmethod
-    def __modify_schema__(cls, field_schema):
-        field_schema.update(type="string")
+PyObjectId = Annotated[str, BeforeValidator(validate_object_id)]
 
 
 class ProductBase(BaseModel):
@@ -43,14 +40,16 @@ class ProductCreate(ProductBase):
 
 class Product(ProductBase):
     """Product model with ID"""
-    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
+    id: Optional[PyObjectId] = Field(None, alias="_id")
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
-    class Config:
-        populate_by_name = True
-        arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str},
+        str_strip_whitespace=True
+    )
 
 
 class ProductInsight(BaseModel):

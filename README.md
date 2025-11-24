@@ -40,10 +40,16 @@ Before you begin, ensure you have the following installed:
    ```bash
    ollama pull llama3.2
    ```
-3. Start Ollama server (usually runs automatically):
+3. **Ollama usually runs automatically** after installation. You typically don't need to manually start it.
+
+   To verify Ollama is running:
    ```bash
-   ollama serve
+   curl http://localhost:11434/api/tags
    ```
+   
+   If you see a JSON response with models, Ollama is running correctly.
+   
+   **Note**: If you get an error like "bind: Only one usage of each socket address", it means Ollama is already running - this is normal and expected!
 
 ## Installation
 
@@ -336,9 +342,15 @@ isort app/
 
 ### Ollama Connection Issues
 
-- Ensure Ollama is running: `ollama serve`
-- Check if the model is downloaded: `ollama list`
-- Verify the base URL in `.env` matches your Ollama server
+- **Ollama is already running**: If you see "bind: Only one usage of each socket address" when running `ollama serve`, it means Ollama is already running. This is normal! You don't need to start it manually.
+- **Verify Ollama is running**: 
+  ```bash
+  curl http://localhost:11434/api/tags
+  ```
+  If this returns a JSON response, Ollama is working correctly.
+- **Check if the model is downloaded**: `ollama list`
+- **Verify the base URL** in `.env` matches your Ollama server (default: `http://localhost:11434`)
+- **If Ollama is not running**: On Windows, check Task Manager for `ollama.exe` or restart your computer (Ollama auto-starts on boot)
 
 ### MongoDB Connection Issues
 
